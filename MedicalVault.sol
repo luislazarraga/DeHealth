@@ -1,46 +1,83 @@
 pragma solidity ^0.8.0;
 
+import "./SBTCode.sol";
+
 contract CajaFuerteSalud {
-    struct Permiso {
-        address persona;
-        bool lectura;
-        bool escritura;
+    
+    mapping(address => bool) private authorizedUsers;
+    mapping(bytes32 => bool) private usedNonces;
+
+    address public owner;
+    uint256 public balance;
+    uint256 private constant MIN_BALANCE = 10 ether;
+
+    SBTCode private sbtContract;
+
+    event Deposit(address indexed from, uint256 value);
+    event Withdraw(address indexed to, uint256 value);
+
+    constructor(SBTCode _sbtContract) {
+        owner = msg.sender;
+        sbtContract = _sbtContract;
     }
 
-    struct HistorialMedico {
-        bool alergias;
-        bool enfermedades;
-        bool medicamentos;
-        string situacionActual;
-        // Otros datos médicos relevantes
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this operation");
+        _;
     }
 
-    address public dueno;
-    address public sbtConfianza;
-    HistorialMedico public historial;
-    mapping(address => Permiso) public permisos;
-
-    constructor() {
-        dueno = msg.sender;
+    modifier onlyAuthorized() {
+        require(authorizedUsers[msg.sender], "Only authorized users can perform this operation");
+        _;
     }
 
-    function actualizarHistorial(HistorialMedico calldata _historial) public {
-        require(msg.sender == dueno || msg.sender == sbtConfianza, "No tienes permiso para actualizar el historial");
-        historial = _historial;
+    function authorize(address _user) public onlyOwner {
+        authorizedUsers[_user] = true;
     }
 
-    function otorgarPermiso(address persona, bool lectura, bool escritura) public {
-        require(msg.sender == dueno || msg.sender == sbtConfianza, "No tienes permiso para otorgar permisos");
-        permisos[persona] = Permiso(persona, lectura, escritura);
+    function deauthorize(address _user) public onlyOwner {
+        authorizedUsers[_user] = false;
     }
 
-    function revocarPermiso(address persona) public {
-        require(msg.sender == dueno || msg.sender == sbtConfianza, "No tienes permiso para revocar permisos");
-        delete permisos[persona];
+    function SBTConfianza(uint256 _amount, address _to, bytes32 _nonce, bytes memory _signature) public onlyAuthorized {
+        require(balance >= MIN_BALANCE, "The balance is less than the minimum required");
+        require(!usedNonces[_nonce], "Nonce has already been used");
+        
+        bytes32 messageHash = keccak256(abi.encodePacked(_amount, _to, _nonce, address(this)));
+        address sbtAuthorizer = recoverSigner(messageHash, _signature);
+
+        require(sbtAuthorizer == sbtContract.owner(), "Invalid signature");
+        
+        usedNonces[_nonce] = true;
+        balance -= _amount;
+        payable(_to).transfer(_amount);
+        emit Withdraw(_to, _amount);
     }
 
-    function asignarSBTConfianza(address _sbtConfianza) public {
-        require(msg.sender == dueno, "No tienes permiso para asignar un SBT de confianza");
-        sbtConfianza = _sbtConfianza;
+    function deposit() public payable {
+        balance += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function recoverSigner(bytes32 _messageHash, bytes memory _signature) internal pure returns (address) {
+        require(_signature.length == 65, "Invalid signature length");
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        assembly {
+            r := mload(add(_signature, 0x20))
+            s := mload(add(_signature, 0x40))
+            v := byte(0, mload(add(_signature, 0x60)))
+        }
+
+        if (v < 27) {
+            v += 27;
+        }
+
+        require(v == 27 || v == 28, "Invalid signature value");
+
+        return ecrecover(_messageHash, v, r, s);
     }
 }
