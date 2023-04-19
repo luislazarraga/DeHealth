@@ -1,54 +1,55 @@
 pragma solidity ^0.8.0;
 
 interface SBTCode {
-    function getSBTConfianza(address) external view returns (uint);
+    function authorize(address, uint256, bytes memory) external returns (bool);
 }
 
 interface CajaFuerteSalud {
-    function setCajaFuerte(address _user, bytes32 _key, uint _value) external;
-    function getCajaFuerte(address _user, bytes32 _key) external view returns (uint);
+    function SBTConfianza(address) external view returns (uint256);
+    function setSBTConfianza(address, uint256) external;
+    function isAuthorizedSBT(address) external view returns (bool);
+    function authorizeSBT(address) external;
+    function removeSBT(address) external;
 }
 
-contract Linker {
-    address public sbtCodeAddress;
+contract LinkerCode {
     address public cajaFuerteSaludAddress;
+    address public sbtCodeAddress;
 
-    SBTCode private sbtCode;
-    CajaFuerteSalud private cajaFuerteSalud;
-
-    constructor(address _sbtCodeAddress, address _cajaFuerteSaludAddress) {
-        sbtCodeAddress = _sbtCodeAddress;
+    constructor(address _cajaFuerteSaludAddress, address _sbtCodeAddress) {
         cajaFuerteSaludAddress = _cajaFuerteSaludAddress;
-
-        sbtCode = SBTCode(sbtCodeAddress);
-        cajaFuerteSalud = CajaFuerteSalud(cajaFuerteSaludAddress);
+        sbtCodeAddress = _sbtCodeAddress;
     }
 
-    function getSBTConfianza() public view returns (uint) {
-        return sbtCode.getSBTConfianza(msg.sender);
+    function authorizeSBT(address _sbtAddress, uint256 _amount, bytes memory _signature) external {
+        bytes32 message = prefixed(keccak256(abi.encodePacked(msg.sender, _sbtAddress, _amount)));
+        require(SBTCode(sbtCodeAddress).authorize(_sbtAddress, _amount, _signature), "Invalid SBT signature");
+        require(CajaFuerteSalud(cajaFuerteSaludAddress).SBTConfianza(_sbtAddress) > 0, "SBT is not trusted");
+        require(CajaFuerteSalud(cajaFuerteSaludAddress).isAuthorizedSBT(_sbtAddress), "SBT is not authorized for this service");
+        CajaFuerteSalud(cajaFuerteSaludAddress).authorizeSBT(_sbtAddress);
     }
 
-    function setCajaFuerte(bytes32 _key, uint _value) public {
-        require(getSBTConfianza() >= 5, "SBTConfianza insufficient");
-
-        cajaFuerteSalud.setCajaFuerte(msg.sender, _key, _value);
+    function revokeSBT(address _sbtAddress) external {
+        require(msg.sender == _sbtAddress || CajaFuerteSalud(cajaFuerteSaludAddress).SBTConfianza(_sbtAddress) == 0, "Unauthorized");
+        CajaFuerteSalud(cajaFuerteSaludAddress).removeSBT(_sbtAddress);
     }
 
-    function getCajaFuerte(bytes32 _key) public view returns (uint) {
-        require(getSBTConfianza() >= 5, "SBTConfianza insufficient");
-
-        return cajaFuerteSalud.getCajaFuerte(msg.sender, _key);
+    function prefixed(bytes32 hash) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
 
-    function setCajaFuerteWithSBT(bytes32 _key, uint _value, bytes32 _sbt) public {
-        require(keccak256(abi.encodePacked(_sbt)) == keccak256(abi.encodePacked(_key)), "Invalid SBT");
-
-        setCajaFuerte(_key, _value);
+    function setSBTConfianza(address _sbtAddress, uint256 _confianza) external {
+        require(msg.sender == cajaFuerteSaludAddress, "Unauthorized");
+        CajaFuerteSalud(cajaFuerteSaludAddress).setSBTConfianza(_sbtAddress, _confianza);
     }
 
-    function getCajaFuerteWithSBT(bytes32 _key, bytes32 _sbt) public view returns (uint) {
-        require(keccak256(abi.encodePacked(_sbt)) == keccak256(abi.encodePacked(_key)), "Invalid SBT");
+    function getSBTConfianza(address _sbtAddress) external view returns (uint256) {
+        require(msg.sender == cajaFuerteSaludAddress, "Unauthorized");
+        return CajaFuerteSalud(cajaFuerteSaludAddress).SBTConfianza(_sbtAddress);
+    }
 
-        return getCajaFuerte(_key);
+    function isAuthorizedSBT(address _sbtAddress) external view returns (bool) {
+        require(msg.sender == cajaFuerteSaludAddress, "Unauthorized");
+        return CajaFuerteSalud(cajaFuerteSaludAddress).isAuthorizedSBT(_sbtAddress);
     }
 }
