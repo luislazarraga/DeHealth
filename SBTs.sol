@@ -1,38 +1,29 @@
 pragma solidity ^0.8.0;
 
-contract SBTCode {
-    mapping(address => uint256) balances;
+import "./IERC5484.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    function transfer(address recipient, uint256 amount) external returns (bool) {
-        require(recipient != address(0), "SBT: transfer to zero address");
-        require(amount > 0, "SBT: transfer amount must be greater than zero");
-        require(balances[msg.sender] >= amount, "SBT: insufficient balance");
+contract SBTCode is ERC721, Ownable, IERC5484 {
+    uint256 private _currentTokenId = 0;
+    mapping (uint256 => BurnAuth) private _burnAuth;
 
-        balances[msg.sender] -= amount;
-        balances[recipient] += amount;
+    constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
 
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
-    }
-    
-    function isValidAddress(address addr) internal view returns (bool) {
-        uint size;
-        assembly { size := extcodesize(addr) }
-        return size == 0 && addr != 0;
-    }
-    
-    function transferSecurely(address recipient, uint256 amount, bytes32 messageHash, uint8 v, bytes32 r, bytes32 s) external returns (bool) {
-        require(isValidAddress(recipient), "SBT: invalid recipient address");
-        require(amount > 0, "SBT: transfer amount must be greater than zero");
-        require(balances[msg.sender] >= amount, "SBT: insufficient balance");
-        require(ecrecover(messageHash, v, r, s) == sbtauthorizer, "SBT: invalid authorization");
+    function issue(address to, BurnAuth burnAuth) external onlyOwner returns (uint256) {
+        _currentTokenId++;
+        uint256 newTokenId = _currentTokenId;
+        _safeMint(to, newTokenId);
+        _burnAuth[newTokenId] = burnAuth;
 
-        balances[msg.sender] -= amount;
-        balances[recipient] += amount;
+        emit Issued(owner(), to, newTokenId, burnAuth);
 
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
+        return newTokenId;
     }
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
+    function burnAuth(uint256 tokenId) external view override returns (BurnAuth) {
+        require(_exists(tokenId), "Token does not exist");
+        return _burnAuth[tokenId];
+    }
 }
+
