@@ -11,6 +11,22 @@ contract SBTCode is ERC721, Ownable, IERC5484 {
 
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
 
+    function issue(address to, BurnAuth burnAuth) external onlyOwner returns (uint256) {
+        _currentTokenId++;
+        uint256 newTokenId = _currentTokenId;
+        _safeMint(to, newTokenId);
+        _burnAuth[newTokenId] = burnAuth;
+
+        emit Issued(owner(), to, newTokenId, burnAuth);
+
+        return newTokenId;
+    }
+
+    function burnAuth(uint256 tokenId) external view override returns (BurnAuth) {
+        require(_exists(tokenId), "Token does not exist");
+        return _burnAuth[tokenId];
+    }
+
     function requestSBT() external returns (uint256) {
         require(!_hasSBT[msg.sender], "You already have an SBT");
         _currentTokenId++;
@@ -23,28 +39,4 @@ contract SBTCode is ERC721, Ownable, IERC5484 {
 
         return newTokenId;
     }
-
-    function issue(address to, BurnAuth burnAuth) external onlyOwner returns (uint256) {
-        require(!_hasSBT[to], "User already has an SBT");
-        _currentTokenId++;
-        uint256 newTokenId = _currentTokenId;
-        _safeMint(to, newTokenId);
-        _burnAuth[newTokenId] = burnAuth;
-        _hasSBT[to] = true;
-
-        emit Issued(owner(), to, newTokenId, burnAuth);
-
-        return newTokenId;
-    }
-
-    function burnAuth(uint256 tokenId) external view override returns (BurnAuth) {
-        require(_exists(tokenId), "Token does not exist");
-        return _burnAuth[tokenId];
-    }
-
-    function hasSBT(address user) external view returns (bool) {
-        return _hasSBT[user];
-    }
 }
-
-
