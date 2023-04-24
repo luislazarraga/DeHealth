@@ -15,6 +15,7 @@ contract CajaFuerteSalud {
 
     event Deposit(address indexed from, uint256 value);
     event Withdraw(address indexed to, uint256 value);
+    event DeauthorizedUser(address indexed user, address indexed sbt);
 
     constructor(SBTCode _sbtContract) {
         owner = msg.sender;
@@ -22,41 +23,40 @@ contract CajaFuerteSalud {
     }
 
     struct CajaFuerteRegistro {
-    string condicionesSalud;
-    string registroMedico;
-    string medicamentos;
-    string situacionActual;
-}
+        string condicionesSalud;
+        string registroMedico;
+        string medicamentos;
+        string situacionActual;
+    }
 
     struct AuthorizedUser {
-    address sbt;
-    uint256 maxRecords;
-}
+        address sbt;
+        uint256 maxRecords;
+    }
 
-mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
+    mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
 
-mapping(address => CajaFuerteRegistro[]) private cajaFuerteRegistros;
+    mapping(address => CajaFuerteRegistro[]) private cajaFuerteRegistros;
 
-function crearRegistroEnCajaFuerte() public {
-    require(hasRegistered[msg.sender], "The user has not registered their medical record yet");
-    
-    CajaFuerteRegistro memory registro = CajaFuerteRegistro(
-        registrosMedicos[msg.sender].condicionesSalud,
-        registrosMedicos[msg.sender].registroMedico,
-        registrosMedicos[msg.sender].medicamentos,
-        registrosMedicos[msg.sender].situacionActual
-    );
-    
-    cajaFuerteRegistros[msg.sender].push(registro);
-}
+    function crearRegistroEnCajaFuerte() public {
+        require(hasRegistered[msg.sender], "The user has not registered their medical record yet");
+        
+        CajaFuerteRegistro memory registro = CajaFuerteRegistro(
+            registrosMedicos[msg.sender].condicionesSalud,
+            registrosMedicos[msg.sender].registroMedico,
+            registrosMedicos[msg.sender].medicamentos,
+            registrosMedicos[msg.sender].situacionActual
+        );
+        
+        cajaFuerteRegistros[msg.sender].push(registro);
+    }
 
 
-function recuperarRegistroDeCajaFuerte() public view returns (string memory, string memory, string memory, string memory) {
-    require(cajaFuerteRegistros[msg.sender].length > 0, "The user has not stored their medical record in the safe yet");
-    CajaFuerteRegistro memory registro = cajaFuerteRegistros[msg.sender][cajaFuerteRegistros[msg.sender].length - 1];
-    return (registro.condicionesSalud, registro.registroMedico, registro.medicamentos, registro.situacionActual);
-}
-
+    function recuperarRegistroDeCajaFuerte() public view returns (string memory, string memory, string memory, string memory) {
+        require(cajaFuerteRegistros[msg.sender].length > 0, "The user has not stored their medical record in the safe yet");
+        CajaFuerteRegistro memory registro = cajaFuerteRegistros[msg.sender][cajaFuerteRegistros[msg.sender].length - 1];
+        return (registro.condicionesSalud, registro.registroMedico, registro.medicamentos, registro.situacionActual);
+    }
 
 
     modifier onlyOwner() {
@@ -70,48 +70,39 @@ function recuperarRegistroDeCajaFuerte() public view returns (string memory, str
     }
 
     function authorize(address _user, address _sbt, uint256 _maxRecords) public onlyOwner {
-    require(sbtContract.isAuthorized(_sbt), "SBT is not authorized");
+        require(sbtContract.isAuthorized(_sbt), "SBT is not authorized");
 
-    AuthorizedUser memory authorizedUser = AuthorizedUser(_sbt, _maxRecords);
-    authorizedUsersInfo[_user].push(authorizedUser);
+        AuthorizedUser memory authorizedUser = AuthorizedUser(_sbt, _maxRecords);
+        authorizedUsersInfo[_user].push(authorizedUser);
 
-    authorizedUsers[_user] = true;
-}
+        authorizedUsers[_user] = true;
+    }
 
 
     function deauthorize(address _user, uint256 _index) public onlyOwner {
-    require(authorizedUsersInfo[_user].length > _index, "Invalid index");
+        require(authorizedUsersInfo[_user].length > _index, "Invalid index");
 
-    address sbt = authorizedUsersInfo[_user][_index].sbt;
-    authorizedUsers[_user] = false;
-    authorizedUsersInfo[_user][_index] = authorizedUsersInfo[_user][authorizedUsersInfo[_user].length - 1];
-    authorizedUsersInfo[_user].pop();
+        address sbt = authorizedUsersInfo[_user][_index].sbt;
+        authorizedUsers[_user] = false;
+        authorizedUsersInfo[_user][_index] = authorizedUsersInfo[_user][authorizedUsersInfo[_user].length - 1];
+        authorizedUsersInfo[_user].pop();
 
-    emit DeauthorizedUser(_user, sbt);
-}
-
-
-    function SBTConfianza(uint256 _amount, address _to, bytes32 _nonce, bytes memory _signature) public onlyAuthorized {
-    require(balance >= MIN_BALANCE, "The balance is less than the minimum required");
-    require(!usedNonces[_nonce], "Nonce has already been used");
-
-    bytes32 messageHash = keccak256(abi.encodePacked(_amount, _to, _nonce, address(this)));
-    address sbtAuthorizer = recoverSigner(messageHash, _signature);
-
-    require(sbtAuthorizer == sbtContract.owner() || sbtContract.isAuthorized(sbtAuthorizer), "Invalid signature");
-
-    usedNonces[_nonce] = true;
-    balance -= _amount;
-    payable(_to).transfer(_amount);
-    emit Withdraw(_to, _amount);
-}
-
-
-
-    function deposit() public payable {
-        balance += msg.value;
-        emit Deposit(msg.sender, msg.value);
+        emit DeauthorizedUser(_user, sbt);
     }
+
+
+    function SBTConfianza(address[] memory newUsers) public onlyOwner {
+    require(newUsers.length <= 2, "Solo se pueden agregar hasta dos usuarios de confianza");
+    
+    for (uint i = 0; i < newUsers.length; i++) {
+        require(newUsers[i] != address(0), "La dirección del usuario no puede ser cero");
+        require(newUsers[i] != owner, "El usuario principal ya es propietario de la caja fuerte médica");
+        require(!authorizedUsers[newUsers[i]], "El usuario ya está autorizado para acceder a la caja fuerte médica");
+        authorizedUsers[newUsers[i]] = true;
+        emit UsuarioAutorizado(newUsers[i]);
+    }
+}
+
 
     function recoverSigner(bytes32 _messageHash, bytes memory _signature) internal pure returns (address) {
         require(_signature.length == 65, "Invalid signature length");
