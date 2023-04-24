@@ -28,6 +28,13 @@ contract CajaFuerteSalud {
     string situacionActual;
 }
 
+    struct AuthorizedUser {
+    address sbt;
+    uint256 maxRecords;
+}
+
+mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
+
 mapping(address => CajaFuerteRegistro[]) private cajaFuerteRegistros;
 
 function crearRegistroEnCajaFuerte() public {
@@ -62,28 +69,43 @@ function recuperarRegistroDeCajaFuerte() public view returns (string memory, str
         _;
     }
 
-    function authorize(address _user) public onlyOwner {
-        authorizedUsers[_user] = true;
-    }
+    function authorize(address _user, address _sbt, uint256 _maxRecords) public onlyOwner {
+    require(sbtContract.isAuthorized(_sbt), "SBT is not authorized");
 
-    function deauthorize(address _user) public onlyOwner {
-        authorizedUsers[_user] = false;
-    }
+    AuthorizedUser memory authorizedUser = AuthorizedUser(_sbt, _maxRecords);
+    authorizedUsersInfo[_user].push(authorizedUser);
+
+    authorizedUsers[_user] = true;
+}
+
+
+    function deauthorize(address _user, uint256 _index) public onlyOwner {
+    require(authorizedUsersInfo[_user].length > _index, "Invalid index");
+
+    address sbt = authorizedUsersInfo[_user][_index].sbt;
+    authorizedUsers[_user] = false;
+    authorizedUsersInfo[_user][_index] = authorizedUsersInfo[_user][authorizedUsersInfo[_user].length - 1];
+    authorizedUsersInfo[_user].pop();
+
+    emit DeauthorizedUser(_user, sbt);
+}
+
 
     function SBTConfianza(uint256 _amount, address _to, bytes32 _nonce, bytes memory _signature) public onlyAuthorized {
     require(balance >= MIN_BALANCE, "The balance is less than the minimum required");
     require(!usedNonces[_nonce], "Nonce has already been used");
-    
+
     bytes32 messageHash = keccak256(abi.encodePacked(_amount, _to, _nonce, address(this)));
     address sbtAuthorizer = recoverSigner(messageHash, _signature);
 
     require(sbtAuthorizer == sbtContract.owner() || sbtContract.isAuthorized(sbtAuthorizer), "Invalid signature");
-    
+
     usedNonces[_nonce] = true;
     balance -= _amount;
     payable(_to).transfer(_amount);
     emit Withdraw(_to, _amount);
 }
+
 
 
     function deposit() public payable {
