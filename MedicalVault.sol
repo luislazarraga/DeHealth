@@ -21,6 +21,33 @@ contract CajaFuerteSalud {
         sbtContract = _sbtContract;
     }
 
+    struct CajaFuerteRegistro {
+    string condicionesSalud;
+    string registroMedico;
+    string medicamentos;
+    string situacionActual;
+}
+
+mapping(address => CajaFuerteRegistro) private cajaFuerteRegistros;
+
+function crearRegistroEnCajaFuerte() public {
+    require(hasRegistered[msg.sender], "The user has not registered their medical record yet");
+    CajaFuerteRegistro memory registro = CajaFuerteRegistro(
+        registrosMedicos[msg.sender].condicionesSalud,
+        registrosMedicos[msg.sender].registroMedico,
+        registrosMedicos[msg.sender].medicamentos,
+        registrosMedicos[msg.sender].situacionActual
+    );
+    cajaFuerteRegistros[msg.sender] = registro;
+}
+
+function recuperarRegistroDeCajaFuerte() public view returns (string memory, string memory, string memory, string memory) {
+    require(cajaFuerteRegistros[msg.sender].condicionesSalud != "", "The user has not stored their medical record in the safe yet");
+    CajaFuerteRegistro memory registro = cajaFuerteRegistros[msg.sender];
+    return (registro.condicionesSalud, registro.registroMedico, registro.medicamentos, registro.situacionActual);
+}
+
+
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can perform this operation");
         _;
