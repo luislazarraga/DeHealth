@@ -11,13 +11,15 @@ contract SBTCode is ERC721, Ownable, IERC5484 {
 
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
 
-    function issue(address to, BurnAuth burnAuth) external onlyOwner returns (uint256) {
+    function issue(address to, BurnAuth burnAuth) external returns (uint256) {
+        require(!_hasSBT[msg.sender], "You already have an SBT");
         _currentTokenId++;
         uint256 newTokenId = _currentTokenId;
         _safeMint(to, newTokenId);
-        _burnAuth[newTokenId] = burnAuth;
+        _burnAuth[newTokenId] = burnAuth.Both;
+        _hasSBT[msg.sender] = true;
 
-        emit Issued(owner(), to, newTokenId, burnAuth);
+        emit Issued(owner(), to, newTokenId, BurnAuth.Both);
 
         return newTokenId;
     }
@@ -27,16 +29,5 @@ contract SBTCode is ERC721, Ownable, IERC5484 {
         return _burnAuth[tokenId];
     }
 
-    function requestSBT() external returns (uint256) {
-        require(!_hasSBT[msg.sender], "You already have an SBT");
-        _currentTokenId++;
-        uint256 newTokenId = _currentTokenId;
-        _safeMint(msg.sender, newTokenId);
-        _burnAuth[newTokenId] = BurnAuth(msg.sender, address(0));
-        _hasSBT[msg.sender] = true;
-
-        emit Issued(owner(), msg.sender, newTokenId, _burnAuth[newTokenId]);
-
-        return newTokenId;
-    }
+    
 }
