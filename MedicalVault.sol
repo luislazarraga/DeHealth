@@ -1,28 +1,39 @@
+// SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.0;
 
 import "./SBTCode.sol";
 
 contract CajaFuerteSalud {
     
+    
+    
+    address public SBTokenOwner;
+
     mapping(address => bool) private authorizedUsers;
     mapping(bytes32 => bool) private usedNonces;
+    mapping(address => bool) private hasVault;
+   // mapping(SBTokenOwner => cajaFuerteRegistros) private mySBTtoVault;
 
     address public owner;
     uint256 public balance;
     uint256 private constant MIN_BALANCE = 10 ether;
 
+
     SBTCode private sbtContract;
+
+
+    constructor(SBTCode _sbtContract) {
+        sbtContract = _sbtContract;
+        SBTokenOwner = sbtContract.ownerOf(_sbtContract.walletOfOwner(""));
+    }
 
     event Deposit(address indexed from, uint256 value);
     event Withdraw(address indexed to, uint256 value);
     event DeauthorizedUser(address indexed user, address indexed sbt);
 
-    constructor(SBTCode _sbtContract) {
-        owner = msg.sender;
-        sbtContract = _sbtContract;
-    }
+    
 
-    struct CajaFuerteRegistro {
+    struct Registro {
         string condicionesSalud;
         string registroMedico;
         string medicamentos;
@@ -36,27 +47,28 @@ contract CajaFuerteSalud {
 
     mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
 
-    mapping(address => CajaFuerteRegistro[]) private cajaFuerteRegistros;
+    mapping(address => Registro[]) private cajaFuerteRegistros;
 
-    function crearRegistroEnCajaFuerte() public {
-        require(hasRegistered[msg.sender], "The user has not registered their medical record yet");
-        
-        CajaFuerteRegistro memory registro = CajaFuerteRegistro(
-            registrosMedicos[msg.sender].condicionesSalud,
-            registrosMedicos[msg.sender].registroMedico,
-            registrosMedicos[msg.sender].medicamentos,
-            registrosMedicos[msg.sender].situacionActual
-        );
-        
+    function crearRegistroEnCajaFuerte(string memory condicionesSalud, string memory registroMedico, string memory medicacion, string memory situacionActual) public onlyOwner {
+        require(hasVault[msg.sender], "The user has not registered their medical record yet");
+        Registro memory registro = Registro(condicionesSalud, registroMedico, medicacion, situacionActual);
         cajaFuerteRegistros[msg.sender].push(registro);
+        //hasVault[msg.sender] = true;
     }
 
 
-    function recuperarRegistroDeCajaFuerte() public view returns (string memory, string memory, string memory, string memory) {
-        require(cajaFuerteRegistros[msg.sender].length > 0, "The user has not stored their medical record in the safe yet");
-        CajaFuerteRegistro memory registro = cajaFuerteRegistros[msg.sender][cajaFuerteRegistros[msg.sender].length - 1];
+    function recuperarRegistro(uint256 index) public view onlyOwner returns (string memory, string memory, string memory, string memory)  {
+        require(cajaFuerteRegistros[msg.sender].length > 0, "No hay registros medicos de este paciente");
+        Registro memory registro = cajaFuerteRegistros[msg.sender][index];
         return (registro.condicionesSalud, registro.registroMedico, registro.medicamentos, registro.situacionActual);
     }
+
+    function recuperarVault() public view onlyOwner returns (Registro[] memory) {
+        require(cajaFuerteRegistros[msg.sender].length > 0, "No hay registros medicos de este paciente");
+        Registro[] memory registros = cajaFuerteRegistros[msg.sender];
+        return registros;
+    }
+
 
 
     modifier onlyOwner() {
@@ -95,11 +107,10 @@ contract CajaFuerteSalud {
     require(newUsers.length <= 2, "Solo se pueden agregar hasta dos usuarios de confianza");
     
     for (uint i = 0; i < newUsers.length; i++) {
-        require(newUsers[i] != address(0), "La dirección del usuario no puede ser cero");
-        require(newUsers[i] != owner, "El usuario principal ya es propietario de la caja fuerte médica");
-        require(!authorizedUsers[newUsers[i]], "El usuario ya está autorizado para acceder a la caja fuerte médica");
+        require(newUsers[i] != address(0), "La direccion del usuario no puede ser cero");
+        require(newUsers[i] != owner, "El usuario principal ya es propietario de la caja fuerte medica");
+        require(!authorizedUsers[newUsers[i]], "El usuario ya esta autorizado para acceder a la caja fuerte medica");
         authorizedUsers[newUsers[i]] = true;
-        emit UsuarioAutorizado(newUsers[i]);
     }
 }
 
