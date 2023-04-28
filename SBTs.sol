@@ -23,7 +23,8 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
     mapping (uint256 => BurnAuth) private _burnAuth;
 
     CajaFuerteSalud private cajaFuerteContract;
-    mapping (address => address[]) private famAndFriends;
+
+    mapping(uint256 => address[]) private _SBTApprovals;
 
 
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
@@ -46,10 +47,26 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return _tokenId;
     }
 
-    function trustYourFam(address _yourFriend) public hasSBT{
-        require(famAndFriends[msg.sender].length <= 2, "Has concecido ya los dos permisos extraordinarios");
-        approve(_yourFriend, walletOfOwner(msg.sender));
-        famAndFriends[msg.sender].push(_yourFriend);
+    function amIFam(address trusterSBT) public view returns (bool) {
+      //  if (trusterSBT )
+
+    }
+
+    function approveSBT(address to, uint256 tokenId) internal{
+        _SBTApprovals[tokenId].push(to);
+        emit Approval(ERC721.ownerOf(tokenId), to, tokenId);
+    }
+
+    function getApprovedSBT(uint256 tokenId) public view returns (address[] memory) {
+        _requireMinted(tokenId);
+        return _SBTApprovals[tokenId];
+    }
+
+    function trustYourFam(address _yourFriend) public hasSBT returns (bool){
+        require(_SBTApprovals[walletOfOwner(msg.sender)].length <= 2, "Has concecido ya los dos permisos extraordinarios");
+        approveSBT(_yourFriend, walletOfOwner(msg.sender));
+        _SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
+        return true;
     }     
 
     modifier hasSBT() {

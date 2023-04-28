@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./SBTCode.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+
 
 contract CajaFuerteSalud {
-    
-    
     
     address public SBTokenOwner;
 
@@ -47,27 +47,28 @@ contract CajaFuerteSalud {
 
     mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
     mapping(address => bool) private hasVault;
-    mapping(address => Registro[]) private cajaFuerteRegistros;
+    mapping(uint256 => Registro[]) private cajaFuerteRegistros;
 
     function crearRegistroEnCajaFuerte(string memory condicionesSalud, string memory registroMedico, string memory medicacion, string memory situacionActual) public onlyOwner {
         require(hasVault[msg.sender], "The user has not registered their medical record yet");
         Registro memory registro = Registro(condicionesSalud, registroMedico, medicacion, situacionActual);
-        cajaFuerteRegistros[msg.sender].push(registro);
-        //hasVault[msg.sender] = true;
+        cajaFuerteRegistros[sbtContract.walletOfOwner(msg.sender)].push(registro);
     }
 
 
     function recuperarRegistro(uint256 index) public view hasSBT returns (string memory, string memory, string memory, string memory)  {
-        require(cajaFuerteRegistros[msg.sender].length > 0, "No hay registros medicos de este paciente");
-        Registro memory registro = cajaFuerteRegistros[msg.sender][index];
+        require(cajaFuerteRegistros[sbtContract.walletOfOwner(msg.sender)].length > 0, "No hay registros medicos de este paciente");
+        Registro memory registro = cajaFuerteRegistros[sbtContract.walletOfOwner(msg.sender)][index];
         return (registro.condicionesSalud, registro.registroMedico, registro.medicamentos, registro.situacionActual);
     }
 
     function recuperarVault() public view hasSBT returns (Registro[] memory) {
-        require(cajaFuerteRegistros[msg.sender].length > 0, "No hay registros medicos de este paciente");
-        Registro[] memory registros = cajaFuerteRegistros[msg.sender];
+        require(cajaFuerteRegistros[sbtContract.walletOfOwner(msg.sender)].length > 0, "No hay registros medicos de este paciente");
+        Registro[] memory registros = cajaFuerteRegistros[sbtContract.walletOfOwner(msg.sender)];
         return registros;
     }
+
+    function recuperarVaultAjeno(address SBTAjeno) public view {}
 
     modifier hasSBT() {
         require(sbtContract.balanceOf(msg.sender) > 0 , "No tienes ningun SBT en tu cartera");
