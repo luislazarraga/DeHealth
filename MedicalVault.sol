@@ -79,48 +79,6 @@ contract CajaFuerteSalud {
         _;
     }
 
-    modifier onlyAuthorized() {
-        require(authorizedUsers[msg.sender], "Only authorized users can perform this operation");
-        _;
-    }
-
-  
-  
-  
-    function authorize(address _user, address _sbt, uint256 _maxRecords) public onlyOwner {
-        require(sbtContract.isAuthorized(_sbt), "SBT is not authorized");
-
-        AuthorizedUser memory authorizedUser = AuthorizedUser(_sbt, _maxRecords);
-        authorizedUsersInfo[_user].push(authorizedUser);
-
-        authorizedUsers[_user] = true;
-    }
-
-
-    function deauthorize(address _user, uint256 _index) public onlyOwner {
-        require(authorizedUsersInfo[_user].length > _index, "Invalid index");
-
-        address sbt = authorizedUsersInfo[_user][_index].sbt;
-        authorizedUsers[_user] = false;
-        authorizedUsersInfo[_user][_index] = authorizedUsersInfo[_user][authorizedUsersInfo[_user].length - 1];
-        authorizedUsersInfo[_user].pop();
-
-        emit DeauthorizedUser(_user, sbt);
-    }
-
-
-    function SBTConfianza(address[] memory newUsers) public onlyOwner {
-    require(newUsers.length <= 2, "Solo se pueden agregar hasta dos usuarios de confianza");
-    
-    for (uint i = 0; i < newUsers.length; i++) {
-        require(newUsers[i] != address(0), "La direccion del usuario no puede ser cero");
-        require(newUsers[i] != owner, "El usuario principal ya es propietario de la caja fuerte medica");
-        require(!authorizedUsers[newUsers[i]], "El usuario ya esta autorizado para acceder a la caja fuerte medica");
-        authorizedUsers[newUsers[i]] = true;
-    }
-}
-
-
     function recoverSigner(bytes32 _messageHash, bytes memory _signature) internal pure returns (address) {
         require(_signature.length == 65, "Invalid signature length");
 
