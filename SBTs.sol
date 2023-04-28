@@ -21,18 +21,18 @@ import "./CajaFuerteSalud.sol";
 contract SBTCode is ERC721Enumerable, IERC5484 {
     uint256 private _currentTokenId = 0;
     mapping (uint256 => BurnAuth) private _burnAuth;
-    mapping (address => bool) private _hasSBT;
+
     CajaFuerteSalud private cajaFuerteContract;
+    mapping (address => address[]) private famAndFriends;
+
 
     constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
 
-    function issue(address to) external returns (uint256) {
-        require(!_hasSBT[msg.sender], "You already have an SBT");
+    function issue(address to) external hasSBT returns (uint256) {
         _currentTokenId++;
         uint256 newTokenId = _currentTokenId;
         _safeMint(to, newTokenId);
         _burnAuth[newTokenId] = BurnAuth.Both;
-        _hasSBT[msg.sender] = true;
         return newTokenId;
     }
 
@@ -42,11 +42,19 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
     }
 
     function walletOfOwner(address _owner) public view returns (uint256) {
-            uint256 _tokenId = tokenOfOwnerByIndex(_owner, 0);
-            return _tokenId;
+        uint256 _tokenId = tokenOfOwnerByIndex(_owner, 0);
+        return _tokenId;
     }
 
-    
+    function trustYourFam(address _yourFriend) public hasSBT{
+        require(famAndFriends[msg.sender].length <= 2, "Has concecido ya los dos permisos extraordinarios");
+        approve(_yourFriend, walletOfOwner(msg.sender));
+        famAndFriends[msg.sender].push(_yourFriend);
+    }     
 
-    
+    modifier hasSBT() {
+        require(balanceOf(msg.sender) > 0 , "No tienes ningun SBT en tu cartera");
+        _;
+    }
+
 }
