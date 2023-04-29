@@ -2,9 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./SBTCode.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-
 
 contract CajaFuerteSalud {
     
@@ -55,3 +52,4 @@ contract CajaFuerteSalud {
         _;
     }
 }
+ 
