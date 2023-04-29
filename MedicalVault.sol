@@ -13,7 +13,6 @@ contract CajaFuerteSalud {
 
     constructor(SBTCode _sbtContract) {
         sbtContract = _sbtContract;
-        SBTokenOwner = sbtContract.ownerOf(_sbtContract.walletOfOwner(msg.sender));
     }
 
     struct Registro {
@@ -43,7 +42,7 @@ contract CajaFuerteSalud {
     }
 
     modifier hasSBT(uint256 _soulBoundToken) {
-        require(sbtContract.balanceOf(msg.sender) > 0 || sbtContract.amIFam(_soulBoundToken), "No tienes potestad sobre este SBT o no tienes ningun SBT en tu cartera");
+        require(sbtContract.walletOfOwner(msg.sender) == _soulBoundToken || sbtContract.amIFam(_soulBoundToken), "No tienes potestad sobre este SBT o no tienes ningun SBT en tu cartera");
         _;
     }
 
@@ -52,4 +51,3 @@ contract CajaFuerteSalud {
         _;
     }
 }
- 

@@ -72,7 +72,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override {
-        require(from == address(0), "Err: token transfer is BLOCKED");
+        require(from == address(0), "Los SBT no son transferibles");
         super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 
@@ -90,7 +90,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return _SBTApprovals[tokenId];
     }
 
-    function trustYourFam(address _yourFriend) public hasSBT returns (bool) {
+    function trustYourFam(address _yourFriend, uint256 _soulBoundToken) public hasSBT(_soulBoundToken) returns (bool) {
         require(
             _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
             "Has concecido ya los dos permisos extraordinarios"
@@ -100,12 +100,11 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return true;
     }
 
-    modifier hasSBT() {
+    modifier hasSBT(uint256 _soulBoundToken) {
         require(
-            balanceOf(msg.sender) > 0,
+            walletOfOwner(msg.sender) == _soulBoundToken,
             "No tienes ningun SBT en tu cartera"
         );
         _;
     }
 }
-
