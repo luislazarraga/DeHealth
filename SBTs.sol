@@ -30,10 +30,11 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         ERC721(name, symbol)
     {}
 
-    function issue(address to) external hasSBT returns (uint256) {
+    function issue() external returns (uint256) {
+        require(balanceOf(msg.sender) <1, "Solo puedes tener un SBT");
         _currentTokenId++;
         uint256 newTokenId = _currentTokenId;
-        _safeMint(to, newTokenId);
+        _safeMint(msg.sender, newTokenId);
         _burnAuth[newTokenId] = BurnAuth.Both;
         return newTokenId;
     }
@@ -63,6 +64,16 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         }
 
         return false;
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal virtual override {
+        require(from == address(0), "Err: token transfer is BLOCKED");
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 
     function approveSBT(address to, uint256 tokenId) internal {
@@ -97,3 +108,4 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         _;
     }
 }
+
