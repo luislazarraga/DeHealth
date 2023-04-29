@@ -20,14 +20,15 @@ import "./CajaFuerteSalud.sol";
 
 contract SBTCode is ERC721Enumerable, IERC5484 {
     uint256 private _currentTokenId = 0;
-    mapping (uint256 => BurnAuth) private _burnAuth;
+    mapping(uint256 => BurnAuth) private _burnAuth;
 
     CajaFuerteSalud private cajaFuerteContract;
 
     mapping(uint256 => address[]) private _SBTApprovals;
 
-
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
+    constructor(string memory name, string memory symbol)
+        ERC721(name, symbol)
+    {}
 
     function issue(address to) external hasSBT returns (uint256) {
         _currentTokenId++;
@@ -37,7 +38,12 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return newTokenId;
     }
 
-    function burnAuth(uint256 tokenId) external view override returns (BurnAuth) {
+    function burnAuth(uint256 tokenId)
+        external
+        view
+        override
+        returns (BurnAuth)
+    {
         require(_exists(tokenId), "Token does not exist");
         return _burnAuth[tokenId];
     }
@@ -47,31 +53,47 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return _tokenId;
     }
 
-    function amIFam(address trusterSBT) public view returns (bool) {
-      //  if (trusterSBT )
+    function amIFam(uint256 trusterSBT) public view returns (bool) {
+        //  if (trusterSBT ) token = truster wallet = trusted. Comprueba si pa un token tu direccion está trusteada
+        // ejecuta el trusted
+        for (uint256 i = 0; i <= getApprovedSBT(trusterSBT).length; i++) {
+            if (msg.sender == getApprovedSBT(trusterSBT)[i]) {
+                return true;
+            }
+        }
 
+        return false;
     }
 
-    function approveSBT(address to, uint256 tokenId) internal{
+    function approveSBT(address to, uint256 tokenId) internal {
         _SBTApprovals[tokenId].push(to);
         emit Approval(ERC721.ownerOf(tokenId), to, tokenId);
     }
 
-    function getApprovedSBT(uint256 tokenId) public view returns (address[] memory) {
+    function getApprovedSBT(uint256 tokenId)
+        internal
+        view
+        returns (address[] memory)
+    {
         _requireMinted(tokenId);
         return _SBTApprovals[tokenId];
     }
 
-    function trustYourFam(address _yourFriend) public hasSBT returns (bool){
-        require(_SBTApprovals[walletOfOwner(msg.sender)].length <= 2, "Has concecido ya los dos permisos extraordinarios");
+    function trustYourFam(address _yourFriend) public hasSBT returns (bool) {
+        require(
+            _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
+            "Has concecido ya los dos permisos extraordinarios"
+        );
         approveSBT(_yourFriend, walletOfOwner(msg.sender));
         _SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
         return true;
-    }     
-
-    modifier hasSBT() {
-        require(balanceOf(msg.sender) > 0 , "No tienes ningun SBT en tu cartera");
-        _;
     }
 
+    modifier hasSBT() {
+        require(
+            balanceOf(msg.sender) > 0,
+            "No tienes ningun SBT en tu cartera"
+        );
+        _;
+    }
 }
