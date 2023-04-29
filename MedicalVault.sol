@@ -9,29 +9,15 @@ import "@openzeppelin/contracts/utils/Context.sol";
 contract CajaFuerteSalud {
     
     address public SBTokenOwner;
-
-    mapping(address => bool) private authorizedUsers;
-    mapping(bytes32 => bool) private usedNonces;
     
-
     address public owner;
-    uint256 public balance;
-    uint256 private constant MIN_BALANCE = 10 ether;
-
 
     SBTCode private sbtContract;
-
 
     constructor(SBTCode _sbtContract) {
         sbtContract = _sbtContract;
         SBTokenOwner = sbtContract.ownerOf(_sbtContract.walletOfOwner(msg.sender));
     }
-
-    event Deposit(address indexed from, uint256 value);
-    event Withdraw(address indexed to, uint256 value);
-    event DeauthorizedUser(address indexed user, address indexed sbt);
-
-    
 
     struct Registro {
         string condicionesSalud;
@@ -40,12 +26,6 @@ contract CajaFuerteSalud {
         string situacionActual;
     }
 
-    struct AuthorizedUser {
-        address sbt;
-        uint256 maxRecords;
-    }
-
-    mapping(address => AuthorizedUser[]) private authorizedUsersInfo;
     mapping(address => bool) private hasVault;
     mapping(uint256 => Registro[]) private cajaFuerteRegistros;
 
