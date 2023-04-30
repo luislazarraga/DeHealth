@@ -5,10 +5,6 @@ import "./SBTCode.sol";
 
 contract CajaFuerteSalud {
     
-    address public SBTokenOwner;
-    
-    address public owner;
-
     SBTCode private sbtContract;
 
     constructor(SBTCode _sbtContract) {
@@ -43,11 +39,6 @@ contract CajaFuerteSalud {
 
     modifier hasSBT(uint256 _soulBoundToken) {
         require(sbtContract.walletOfOwner(msg.sender) == _soulBoundToken || sbtContract.amIFam(_soulBoundToken), "No tienes potestad sobre este SBT o no tienes ningun SBT en tu cartera");
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can perform this operation");
         _;
     }
 }

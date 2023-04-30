@@ -31,7 +31,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
     {}
 
     function issue() external returns (uint256) {
-        require(balanceOf(msg.sender) <1, "Solo puedes tener un SBT");
+        require(balanceOf(msg.sender) < 1, "Solo puedes tener un SBT");
         _currentTokenId++;
         uint256 newTokenId = _currentTokenId;
         _safeMint(msg.sender, newTokenId);
@@ -62,8 +62,6 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
                 return true;
             }
         }
-
-        return false;
     }
 
     function _beforeTokenTransfer(
@@ -90,7 +88,23 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return _SBTApprovals[tokenId];
     }
 
-    function trustYourFam(address _yourFriend, uint256 _soulBoundToken) public hasSBT(_soulBoundToken) returns (bool) {
+    function outOfFam(address _yourFakeFriend, uint256 _soulBoundToken)
+        public
+        hasSBT(_soulBoundToken)
+    {
+        for (uint256 i = 0; i < 2; i++) {
+            if (_SBTApprovals[walletOfOwner(msg.sender)][i] == _yourFakeFriend) {
+                delete _SBTApprovals[walletOfOwner(msg.sender)][i];
+            }
+            
+        }
+    }
+
+    function trustYourFam(address _yourFriend, uint256 _soulBoundToken)
+        public
+        hasSBT(_soulBoundToken)
+        returns (bool)
+    {
         require(
             _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
             "Has concecido ya los dos permisos extraordinarios"
