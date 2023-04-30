@@ -62,6 +62,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
                 return true;
             }
         }
+        return false;
     }
 
     function _beforeTokenTransfer(
@@ -88,15 +89,12 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         return _SBTApprovals[tokenId];
     }
 
-    function outOfFam(address _yourFakeFriend, uint256 _soulBoundToken)
+    function deleteFam(uint256 _soulBoundToken)
         public
         hasSBT(_soulBoundToken)
     {
-        for (uint256 i = 0; i < 2; i++) {
-            if (_SBTApprovals[walletOfOwner(msg.sender)][i] == _yourFakeFriend) {
-                delete _SBTApprovals[walletOfOwner(msg.sender)][i];
-            }
-            
+        for (uint256 i = 0; i < getApprovedSBT(_soulBoundToken).length; i++) {
+            _SBTApprovals[walletOfOwner(msg.sender)].pop();
         }
     }
 
@@ -109,6 +107,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
             _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
             "Has concecido ya los dos permisos extraordinarios"
         );
+//FALTA REQUIRE QUE NO PERMITA AÑADIR LA MISMA DIRECCIÓN 2 VECES
         approveSBT(_yourFriend, walletOfOwner(msg.sender));
         _SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
         return true;
