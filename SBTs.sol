@@ -107,7 +107,13 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
             _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
             "Has concecido ya los dos permisos extraordinarios"
         );
-//FALTA REQUIRE QUE NO PERMITA AÑADIR LA MISMA DIRECCIÓN 2 VECES
+        for (uint256 i=1; i<=_SBTApprovals[walletOfOwner(msg.sender)].length; i++)
+        {
+            if (_SBTApprovals[walletOfOwner(msg.sender)][i] == _yourFriend)
+            {
+                return false;
+            }
+        }
         approveSBT(_yourFriend, walletOfOwner(msg.sender));
         _SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
         return true;
