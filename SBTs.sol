@@ -16,13 +16,10 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./CajaFuerteSalud.sol";
 
 contract SBTCode is ERC721Enumerable, IERC5484 {
     uint256 private _currentTokenId = 0;
     mapping(uint256 => BurnAuth) private _burnAuth;
-
-    CajaFuerteSalud private cajaFuerteContract;
 
     mapping(uint256 => address[]) private _SBTApprovals;
 
@@ -35,7 +32,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         _currentTokenId++;
         uint256 newTokenId = _currentTokenId;
         _safeMint(msg.sender, newTokenId);
-        _burnAuth[newTokenId] = BurnAuth.Both;
+        _burnAuth[newTokenId] = BurnAuth.OwnerOnly;
         return newTokenId;
     }
 
@@ -115,7 +112,7 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
             }
         }
         approveSBT(_yourFriend, walletOfOwner(msg.sender));
-        _SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
+        //_SBTApprovals[walletOfOwner(msg.sender)].push(_yourFriend);
         return true;
     }
 
@@ -127,3 +124,4 @@ contract SBTCode is ERC721Enumerable, IERC5484 {
         _;
     }
 }
+
