@@ -87,7 +87,17 @@ La función **approveSBT()** que se menciona en el párrafo de **trustYourFam** 
 
 7. **Sobrescritura de la función _beforeTokenTransfer()**: Esta función es una función hook (gancho) que se ejecuta antes de cada transferencia de tokens en los contratos inteligentes que implementan los estándares ERC-721 y ERC-721Enumerable. El objetivo de esta función es permitir a los contratos que heredan de estos estándares implementar reglas personalizadas para la transferencia de tokens, y realizar cualquier otra acción necesaria antes de que se lleve a cabo la transferencia.
 
-FALTA TERMINAR
+En una guía encontrada en internet (adjuntar enlace) se establecía un método para poder añadir la no transferibilidad sobre el estándar ERC-721. Este método modificaba la función anterior con el objetivo de inhabilitar la transmisión de los tokens sin afectar a ninguna otra funcionalidad del programa. En el *override* de la función, se incluye un *require* que establece una condición imposible, por lo que siempre va a dar error al utilizarse para la transmisión de tokens. Esta condición requiere que el parámetro **from** de la función (la dirección de origen que solicitaría transmitir su token) sea igual a la *dirección 0* de Ethereum.
+
+En Ethereum, la dirección address(0) se utiliza comúnmente para hacer referencia a una dirección nula o vacía. En otras palabras, no hay una cuenta de Ethereum asociada a esta dirección. Esta dirección nula es útil en muchas situaciones en las que se necesita indicar la ausencia de una dirección, como por ejemplo en la implementación de contratos inteligentes que involucren tokens. En algunos casos, se puede utilizar la *address(0)* para indicar que un token no está asignado a ninguna dirección, lo que puede ser útil para evitar problemas de doble asignación. En este caso, al requerir que la dirección **from** sea igual a la *address(0)* no se podrá llevar a cabo la transmisión de los tokens en ninguna circunstancia. Esta funcionalidad es la que garantiza que no se puedan robar los SBTs.
+
+8. **Función getApprovedSBT()**: Complementar lo dicho anteriormente con que esta función es un clon de *getApproved()* del estándar ERC-721 pero adaptado a los SBT. La función es un *getter* para la lista de direcciones de confianza de un SBT dado. Esta función se utiliza como medio para un fin, se declara como *internal* para solo poder ser llamada por funciones dentro de contrato. El objetivo es que sea utilizada por *amIFam()* para implementar la lógica de dicha función.
+
+
+
+
+
+
 
 
 
