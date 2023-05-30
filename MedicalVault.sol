@@ -33,8 +33,7 @@ contract CajaFuerteSalud {
 
     function recuperarVault(uint256 _soulBoundToken) public view hasSBT(_soulBoundToken) returns (Registro[] memory) {
         require(cajaFuerteRegistros[_soulBoundToken].length > 0, "No hay registros medicos de este paciente");        
-        Registro[] memory registros = cajaFuerteRegistros[_soulBoundToken];
-        return registros;
+        return cajaFuerteRegistros[_soulBoundToken];
     }
 
     modifier hasSBT(uint256 _soulBoundToken) {
@@ -42,4 +41,3 @@ contract CajaFuerteSalud {
         _;
     }
 }
- 
