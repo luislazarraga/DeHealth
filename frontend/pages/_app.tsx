@@ -1,11 +1,23 @@
-import { configureChains, createClient, WagmiConfig } from "wagmi";
+import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import {
   connectorsForWallets,
+  getDefaultWallets,
   RainbowKitProvider,
-  wallet,
 } from "@rainbow-me/rainbowkit";
+
+import {
+  argentWallet,
+  braveWallet,
+  coinbaseWallet,
+  imTokenWallet,
+  injectedWallet,
+  metaMaskWallet,
+  rainbowWallet,
+  trustWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 
 import "@rainbow-me/rainbowkit/styles.css";
 
@@ -15,54 +27,53 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { customTheme } from "../styles/theme";
 import Navbar from "../components/Navbar";
 
-const { provider, chains } = configureChains(
+const { publicClient, chains } = configureChains(
   [ftmChain],
   [
     jsonRpcProvider({
       rpc: (chain) => {
         if (chain.id !== ftmChain.id) return null;
-        return { http: chain.rpcUrls.default };
+        return { http: chain.rpcUrls.default.http[0] };
       },
     }),
   ]
 );
 
+const { wallets } = getDefaultWallets({
+  appName: "",
+  chains,
+});
+
 const connectors = connectorsForWallets([
+  ...wallets,
   {
     groupName: "Suggested",
-    wallets: [wallet.metaMask({ chains }), wallet.walletConnect({ chains })],
+    wallets: [metaMaskWallet({ chains }), walletConnectWallet({ chains })],
   },
   {
     groupName: "Others",
     wallets: [
-      wallet.brave({ chains }),
-      wallet.trust({ chains }),
-      wallet.rainbow({ chains }),
-      wallet.argent({ chains }),
-      wallet.coinbase({ appName: "Void Token", chains }),
-      wallet.imToken({ chains }),
-      wallet.injected({ chains }),
+      braveWallet({ chains }),
+      trustWallet({ chains }),
+      rainbowWallet({ chains }),
+      argentWallet({ chains }),
+      coinbaseWallet({ appName: "Void Token", chains }),
+      imTokenWallet({ chains }),
+      injectedWallet({ chains }),
     ],
   },
 ]);
 
-const wagmiClient = createClient({
+const config = createConfig({
   autoConnect: true,
   connectors,
-  provider,
+  publicClient,
 });
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <WagmiConfig client={wagmiClient}>
-      <RainbowKitProvider
-        chains={chains}
-        showRecentTransactions
-        appInfo={{
-          appName: "Void Token",
-          learnMoreUrl: "https://void.money",
-        }}
-      >
+    <WagmiConfig config={config}>
+      <RainbowKitProvider chains={chains}>
         <ChakraProvider theme={customTheme}>
           <Navbar />
           <Component {...pageProps} />

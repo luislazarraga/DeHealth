@@ -14,10 +14,15 @@ const Home: NextPage = () => {
       <HStack
         bgColor={"white"}
         justifyContent={"space-between"}
-        minH={"99vh"}
+        minH={"85vh"}
         w={"full"}
+        color={"black"}
       >
-        <VStack flex={1}>
+        <VStack flex={1} px={"5%"}>
+          <Text>
+            Aquí puedes controlar tu SBT, expedirlo, añadir usuarios de
+            confianza, borrarlos...
+          </Text>
           <Button
             onClick={() => {
               router.push("/SBT", undefined, { shallow: true });
@@ -27,7 +32,10 @@ const Home: NextPage = () => {
             SBT
           </Button>
         </VStack>
-        <VStack flex={1}>
+        <VStack flex={1} px={"5%"}>
+          <Text>
+            Aquí podrás controlar tu caja fuerte. Puedes consultar un registro médico concreto o todos los almacenados y añadir nuevos.
+          </Text>
           <Button
             onClick={() => {
               router.push("/CajaFuerte", undefined, { shallow: true });
