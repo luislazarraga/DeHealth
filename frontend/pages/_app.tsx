@@ -7,6 +7,8 @@ import {
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 
+import { EB_Garamond } from "next/font/google";
+
 import {
   argentWallet,
   braveWallet,
@@ -26,6 +28,8 @@ import { ftmChain } from "../config/network";
 import { ChakraProvider } from "@chakra-ui/react";
 import { customTheme } from "../styles/theme";
 import Navbar from "../components/Navbar";
+
+const ebGaramond = EB_Garamond({ subsets: ["latin"] });
 
 const { publicClient, chains } = configureChains(
   [ftmChain],
@@ -75,8 +79,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiConfig config={config}>
       <RainbowKitProvider chains={chains}>
         <ChakraProvider theme={customTheme}>
-          <Navbar />
-          <Component {...pageProps} />
+          <main className={ebGaramond.className}>
+            <Navbar />
+            <Component {...pageProps} />
+          </main>
         </ChakraProvider>
       </RainbowKitProvider>
     </WagmiConfig>

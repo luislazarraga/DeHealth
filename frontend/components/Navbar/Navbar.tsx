@@ -1,12 +1,21 @@
-import { Flex, HStack, Button } from "@chakra-ui/react";
+import { Flex, HStack, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import logo from "../../assets/logo.png";
 import Image from "next/image";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+
+import NetworkButton from "../NetworkButton/NetworkButton";
 
 export default function Navbar() {
   const router = useRouter();
   return (
-    <HStack bgColor={"rgba(4,5,25,1)"} minH={"15vh"} px={"5%"} w={"full"}>
+    <HStack
+      bgColor={"rgb(60, 91, 102)"}
+      minH={"15vh"}
+      px={"5%"}
+      w={"full"}
+      borderBottom={"2px rgb(2, 62, 84) solid"}
+    >
       <Flex
         as={Button}
         variant={"logo"}
@@ -18,6 +27,7 @@ export default function Navbar() {
         align={"center"}
       >
         <Image width={80} height={40} alt="" src={logo.src} />
+        <Text>HealthChain</Text>
       </Flex>
       <Flex flex={4}></Flex>
       <Flex gap={5} flex={1}>
@@ -37,6 +47,11 @@ export default function Navbar() {
         >
           Caja
         </Button>
+        <ConnectButton
+          accountStatus={{ smallScreen: "address", largeScreen: "full" }}
+          showBalance={false}
+          label={"Connect"}
+        ></ConnectButton>
       </Flex>
     </HStack>
   );
