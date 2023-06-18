@@ -27,7 +27,7 @@ export default function Navbar() {
         align={"center"}
       >
         <Image width={80} height={40} alt="" src={logo.src} />
-        <Text>HealthChain</Text>
+        <Text color="white">DeHealth</Text>
       </Flex>
       <Flex flex={4}></Flex>
       <Flex gap={5} flex={1}>
