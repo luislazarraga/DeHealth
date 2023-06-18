@@ -64,19 +64,18 @@ contract SBT is ERC721Enumerable  {
     }
 
     function getApprovedSBT(uint256 tokenId)
-        internal
-        view
+        public view
         returns (address[] memory)
     {
         _requireMinted(tokenId);
         return _SBTApprovals[tokenId];
     }
 
-    function deleteFam(uint256 _soulBoundToken)
+    function deleteFam(uint256 _soulBoundToken) //No borra por completo
         public
         hasSBT(_soulBoundToken)
     {
-        for (uint256 i = 0; i < getApprovedSBT(_soulBoundToken).length; i++) {
+        for (uint256 i = 0; i <= getApprovedSBT(_soulBoundToken).length; i++) {
             _SBTApprovals[walletOfOwner(msg.sender)].pop();
         }
     }
@@ -87,25 +86,22 @@ contract SBT is ERC721Enumerable  {
         returns (bool)
     {
         require(
-            _SBTApprovals[walletOfOwner(msg.sender)].length <= 2,
-            "Has concecido ya los dos permisos extraordinarios"
+            _SBTApprovals[_soulBoundToken].length < 3,
+            "Has concecido ya los tres permisos extraordinarios"
         );
-        for (uint256 i; i< _SBTApprovals[walletOfOwner(msg.sender)].length; i++)
+        for (uint256 i; i< _SBTApprovals[_soulBoundToken].length; i++)
         {
-            if (_SBTApprovals[walletOfOwner(msg.sender)][i] == _yourFriend)
+            if (_SBTApprovals[_soulBoundToken][i] == _yourFriend)
             {
                 return false;
             }
         }
-        approveSBT(_yourFriend, walletOfOwner(msg.sender));
+        approveSBT(_yourFriend, _soulBoundToken);
         return true;
     }
 
     modifier hasSBT(uint256 _soulBoundToken) {
-        require(
-            walletOfOwner(msg.sender) == _soulBoundToken,
-            "No tienes ningun SBT en tu cartera"
-        );
+        require(walletOfOwner(msg.sender) == _soulBoundToken || amIFam(msg.sender,_soulBoundToken), "No tienes ningun SBT en tu cartera");
         _;
     }
 }
