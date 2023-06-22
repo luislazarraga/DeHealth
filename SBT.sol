@@ -71,11 +71,11 @@ contract SBT is ERC721Enumerable  {
         return _SBTApprovals[tokenId];
     }
 
-    function deleteFam(uint256 _soulBoundToken) //No borra por completo
+    function deleteFam(uint256 _soulBoundToken)
         public
         hasSBT(_soulBoundToken)
     {
-        for (uint256 i = 0; i <= getApprovedSBT(_soulBoundToken).length; i++) {
+        for (uint256 i = 0; i < 3; i++) {
             _SBTApprovals[walletOfOwner(msg.sender)].pop();
         }
     }
