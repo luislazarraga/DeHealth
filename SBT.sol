@@ -75,10 +75,12 @@ contract SBT is ERC721Enumerable  {
         public
         hasSBT(_soulBoundToken)
     {
-        for (uint256 i = 0; i < 3; i++) {
+        uint256 l = _SBTApprovals[walletOfOwner(msg.sender)].length;
+        for (uint256 i = 0; i < l; i++) {
             _SBTApprovals[walletOfOwner(msg.sender)].pop();
         }
     }
+
 
     function trustYourFam(address _yourFriend, uint256 _soulBoundToken)
         public
@@ -101,7 +103,7 @@ contract SBT is ERC721Enumerable  {
     }
 
     modifier hasSBT(uint256 _soulBoundToken) {
-        require(walletOfOwner(msg.sender) == _soulBoundToken || amIFam(msg.sender,_soulBoundToken), "No tienes ningun SBT en tu cartera");
+        require((walletOfOwner(msg.sender) == _soulBoundToken && walletOfOwner(msg.sender) !=0) || amIFam(msg.sender,_soulBoundToken), "No tienes ningun SBT en tu cartera");
         _;
     }
 }

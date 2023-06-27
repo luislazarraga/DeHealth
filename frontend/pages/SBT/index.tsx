@@ -35,6 +35,8 @@ const Home: NextPage = () => {
   const { chain } = useNetwork();
   const { address } = useAccount();
   const [valueAIF, setValueAIF] = useState<number | undefined>();
+  const [valueTYF, setValueTYF] = useState<number | undefined>();
+
   const [valueApprove, setValueApprove] = useState<string | undefined>();
 
   //balanceOf
@@ -50,6 +52,7 @@ const Home: NextPage = () => {
     address: SBTsContractAddress,
     abi: erc721ABI,
     functionName: "totalSupply",
+    watch: true,
   });
   //walletOfOwner
   const { data: idSBT } = useContractRead({
@@ -82,9 +85,8 @@ const Home: NextPage = () => {
       functionName: "trustYourFam",
       args: [
         valueApprove === undefined ? "0x0" : `0x${valueApprove}`,
-        idSBT === undefined ? BigInt(0) : BigInt(idSBT),
+        valueTYF === undefined ? BigInt(0) : BigInt(valueTYF),
       ],
-      enabled: Boolean(hasSBT) && Number(hasSBT) === 1,
     });
   const { isLoading: isLoadingApprove, write: writeApprove } =
     useContractWrite(approveConfig);
@@ -226,7 +228,7 @@ const Home: NextPage = () => {
                     </span>
                   </Tooltip>
                 </Flex>
-                <HStack align={"center"} justify={"center"} w={"full"}>
+                <VStack align={"center"} justify={"center"} w={"full"}>
                   <Input
                     w={"60%"}
                     borderColor={"rgba(4,5,25,1)"}
@@ -237,12 +239,34 @@ const Home: NextPage = () => {
                     onChange={(s) => setValueApprove(s.target.value.slice(2))}
                     value={valueApprove ? "0x" + valueApprove : undefined}
                   ></Input>
-                </HStack>
+                  <NumberInput
+                    min={1}
+                    max={totalSupply ? Number(totalSupply) : 0}
+                    w={"60%"}
+                    onChange={(s) => {
+                      setValueTYF(Number(s));
+                    }}
+                    value={valueTYF}
+                  >
+                    <NumberInputField
+                      borderColor={"rgba(4,5,25,1)"}
+                      _placeholder={{ color: "black" }}
+                      placeholder="Introduce el id del SBT"
+                      _hover={{ borderColor: "rgba(4,5,25,1)" }}
+                      _focus={{ borderColor: "rgba(4,5,25,1)" }}
+                    />
+                    <NumberInputStepper
+                      borderRightRadius={"3"}
+                      bgColor={"rgba(4,5,25,1)"}
+                    >
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </VStack>
                 <Button
                   w={"60%"}
                   isDisabled={
-                    (hasSBT !== undefined && Number(hasSBT) === 0) ||
-                    valueApprove === "" ||
                     isErrorApprove
                   }
                   isLoading={isLoadingApprove}

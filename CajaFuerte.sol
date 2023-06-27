@@ -38,7 +38,7 @@ contract CajaFuerteSalud {
     }
 
     modifier hasSBT(uint256 _soulBoundToken) {
-        require(sbtContract.walletOfOwner(msg.sender) == _soulBoundToken || sbtContract.amIFam(msg.sender,_soulBoundToken), "No tienes potestad sobre este SBT o no tienes ningun SBT en tu cartera");
+        require( (sbtContract.walletOfOwner(msg.sender) == _soulBoundToken && sbtContract.walletOfOwner(msg.sender) != 0) || sbtContract.amIFam(msg.sender,_soulBoundToken), "No tienes potestad sobre este SBT o no tienes ningun SBT en tu cartera");
         _;
     }
 }
