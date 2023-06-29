@@ -1,0 +1,11 @@
+Las direcciones utilizadas para la demo son las siguientes:
+
+1. Paciente - Metamask(Account1): "0x6bA969d96424DBDc27Ef823bAc7D4725b1FFD7Cf"
+2. Médico - Metamask(|||): "0x24b39902A59cF83205c202b21B03A53Bcf905D73"
+3. Mujer del paciente - Metamask(Mujer): "0x5c53FBfbDc46a97be93049fBD53118e99Ebf67D3"
+
+La dirección final de los contratos desplegados es la siguiente:
+
+SBT: "0x0Db8b09FAf49c5172cc1DCaD1A799924f7817007"
+CajaFuerte: "0xD6977c3dcE5cdC8148a3EC718eCEc75eEd88Ff76"
+

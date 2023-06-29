@@ -29,17 +29,9 @@ import {
 import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-interface Registro {
-  antecedentes: string | undefined;
-  analitica: string | undefined;
-  enfermedades: string | undefined;
-  anotaciones: string | undefined;
-  medicacion: string | undefined;
-}
 const Home: NextPage = () => {
   const { address } = useAccount();
   const { chain } = useNetwork();
-
   const [valueAñadir1, setValueAñadir1] = useState<string | undefined>();
   const [valueAñadir2, setValueAñadir2] = useState<string | undefined>();
   const [valueAñadir3, setValueAñadir3] = useState<string | undefined>();
@@ -54,8 +46,8 @@ const Home: NextPage = () => {
   const [valueRToken, setValueRToken] = useState<number | undefined>();
   const [valueRIndex, setValueRIndex] = useState<number | undefined>();
 
-  const [getRegistro, setRegistro] = useState<Registro>();
-
+  //const [getRegistro, setRegistro] = useState<Registro>();
+  const [getRegistro, setRegistro] = useState<readonly [string, string, string, string, string] | undefined>();
   const [getLongitudCaja, setLongitudCaja] = useState<number | undefined>();
   //balanceOf
   const { data: hasSBT } = useContractRead({
@@ -77,7 +69,7 @@ const Home: NextPage = () => {
     watch: true,
   });
   //recuperarRegistro
-  const { data: registro } = useContractRead({
+  const { data: registro, refetch: refetchRegistro } = useContractRead({
     address: MedicalVaultContractAddress,
     abi: MedicalVaultABI,
     args: [
@@ -85,23 +77,26 @@ const Home: NextPage = () => {
       valueRToken ? BigInt(valueRToken) : BigInt(0),
     ],
     functionName: "recuperarRegistro",
-    watch: true,
     account: address,
-    onSuccess(data) {
-      console.log(data);
+    onError() {
+      setRegistro(undefined)
+    },
+    onSuccess() {
+      setRegistro(registro);
     },
   });
   //recuperarVault
-  const { data: vault } = useContractRead({
+  const { data: vault, refetch: refetchVault } = useContractRead({
     address: MedicalVaultContractAddress,
     abi: MedicalVaultABI,
     functionName: "recuperarVault",
     args: [valueVToken ? BigInt(valueVToken) : BigInt(0)],
     account: address,
-    watch: true,
-    onSuccess(data) {
-      console.log("VAULT");
-      console.log(data);
+    onError() {
+      setLongitudCaja(undefined)
+    },
+    onSuccess() {
+      setLongitudCaja(vault?.length);
     },
   });
 
@@ -119,28 +114,14 @@ const Home: NextPage = () => {
         valueAñadir5 ?? "",
         valueAñadirToken ? BigInt(valueAñadirToken) : BigInt(0),
       ],
+      onSuccess() {
+        refetchRegistro();
+        refetchVault();
+      }
     });
   const { isLoading: isLoadingAñadir, write: writeAñadir } =
     useContractWrite(añadirConfig);
 
-  function handleRegistro() {
-    const r: Registro = registro
-      ? {
-        antecedentes: registro[0],
-        analitica: registro[1],
-        enfermedades: registro[2],
-        anotaciones: registro[3],
-        medicacion: registro[4],
-      }
-      : {
-        antecedentes: undefined,
-        analitica: undefined,
-        enfermedades: undefined,
-        anotaciones: undefined,
-        medicacion: undefined,
-      };
-    setRegistro(r);
-  }
   return (
     <>
       <Head>
@@ -338,24 +319,25 @@ const Home: NextPage = () => {
                   </NumberInput>
                   <Button
                     onClick={() => {
-                      handleRegistro();
+                      refetchRegistro();
+
                     }}
                     w={"75%"}
                     variant={"solid3"}
                   >
                     Recuperar registro
                   </Button>
-                  {getRegistro && getRegistro.analitica != undefined ? (
+                  {getRegistro && getRegistro[0] != undefined ? (
                     <VStack w={"74%"} align={"start"}>
-                      <Text>Antecedentes médicos: {getRegistro.antecedentes}</Text>
-                      <Text>Analítica sanguínea: {getRegistro.analitica}</Text>
+                      <Text>Antecedentes médicos: {getRegistro[0]}</Text>
+                      <Text>Analítica sanguínea: {getRegistro[1]}</Text>
                       <Text>
-                        Enfermedades crónicas: {getRegistro.enfermedades}
+                        Enfermedades crónicas: {getRegistro[2]}
                       </Text>
                       <Text>
-                        Anotaciones subjetivas: {getRegistro.anotaciones}
+                        Anotaciones subjetivas: {getRegistro[3]}
                       </Text>
-                      <Text>Medicación recetada: {getRegistro.medicacion}</Text>
+                      <Text>Medicación recetada: {getRegistro[4]}</Text>
                     </VStack>
                   ) : (
                     <Text w={"74%"}>
@@ -395,10 +377,7 @@ const Home: NextPage = () => {
                   </NumberInputStepper>
                 </NumberInput>
                 <Button
-                  onClick={() => {
-                    console.log(vault);
-                    setLongitudCaja(vault ? vault.length : 0);
-                  }}
+                  onClick={() => refetchVault()}
                   w={"75%"}
                   variant={"solid3"}
                 >
@@ -407,13 +386,13 @@ const Home: NextPage = () => {
                 {vault && getLongitudCaja ? (
                   <Text>
                     {getLongitudCaja === 1
-                      ? "Solo tienes un registro el 0"
-                      : `Tienes disponibles los siguientes registros registros (0 - ${getLongitudCaja - 1
+                      ? "Solo tienes un registro, el 0"
+                      : `Tienes disponibles los siguientes registros: (0 - ${getLongitudCaja - 1
                       })`}
                   </Text>
                 ) : (
                   <>
-                    {getLongitudCaja === 0 ? (
+                    {getLongitudCaja === undefined ? (
                       <Text w={"75%"}>
                         No hay ningún registro en ese SBT o no tienes acceso a
                         ellos
