@@ -1,4 +1,4 @@
-export const SBTsContractAddress = "0xa6DAa6f217Ad22106a80085310488721E8937c98";
+export const SBTsContractAddress = "0xED71141583f9c1D684733c645c4B560C4Ab95ff3";
 
 export const MedicalVaultContractAddress =
-    "0x65575cD9B00F721ec58f2f2D7DeA7D4a68E8Bb0f";
+    "0xa3634a4095d57e40d314AA554fA9884B60c4189A";

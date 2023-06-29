@@ -30,11 +30,11 @@ import { useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface Registro {
-  antecedentes: string;
-  analitica: string;
-  enfermedades: string;
-  anotaciones: string;
-  medicacion: string;
+  antecedentes: string | undefined;
+  analitica: string | undefined;
+  enfermedades: string | undefined;
+  anotaciones: string | undefined;
+  medicacion: string | undefined;
 }
 const Home: NextPage = () => {
   const { address } = useAccount();
@@ -133,11 +133,11 @@ const Home: NextPage = () => {
         medicacion: registro[4],
       }
       : {
-        antecedentes: "",
-        analitica: "",
-        enfermedades: "",
-        anotaciones: "",
-        medicacion: "",
+        antecedentes: undefined,
+        analitica: undefined,
+        enfermedades: undefined,
+        anotaciones: undefined,
+        medicacion: undefined,
       };
     setRegistro(r);
   }
@@ -167,12 +167,12 @@ const Home: NextPage = () => {
           <br />Más concretamente el botón del centro permite recuperar los datos médicos asociados a una intervención concreta, en cambio, el de la derecha debe utilizarse para recuperar toda la información.
         </Text>
         <Text>Estas funciones solo pueden utilizarse si se cuenta con un SBT en posesión o si un tercero ha dado permisos de gestión a la dirección de la cartera conectada.</Text>
-        <Flex w={'full'} borderTop={"1px solid rgb(203, 193, 147)"} py={10}
+        <Flex justifyContent={"center"} w={'full'} borderTop={"1px solid rgb(203, 193, 147)"} py={10}
         >
           {address === undefined || chain?.id !== 250 ? (
             <VStack
               gap={3}
-              textAlign={"left"}
+              textAlign={"center"}
               bgColor={"white"}
               borderRadius={20}
               borderWidth={2}
@@ -345,17 +345,17 @@ const Home: NextPage = () => {
                   >
                     Recuperar registro
                   </Button>
-                  {getRegistro && getRegistro.analitica !== "" ? (
+                  {getRegistro && getRegistro.analitica != undefined ? (
                     <VStack w={"74%"} align={"start"}>
-                      <Text>Antecedentes médicos {getRegistro.antecedentes}</Text>
-                      <Text>Analítica sanguínea {getRegistro.analitica}</Text>
+                      <Text>Antecedentes médicos: {getRegistro.antecedentes}</Text>
+                      <Text>Analítica sanguínea: {getRegistro.analitica}</Text>
                       <Text>
-                        Enfermedades crónicas {getRegistro.enfermedades}
+                        Enfermedades crónicas: {getRegistro.enfermedades}
                       </Text>
                       <Text>
-                        Anotaciones subjetivas {getRegistro.anotaciones}
+                        Anotaciones subjetivas: {getRegistro.anotaciones}
                       </Text>
-                      <Text>Medicación recetada {getRegistro.medicacion}</Text>
+                      <Text>Medicación recetada: {getRegistro.medicacion}</Text>
                     </VStack>
                   ) : (
                     <Text w={"74%"}>

@@ -184,7 +184,8 @@ const Home: NextPage = () => {
               borderWidth={2}
               borderColor={"rgb(2, 62, 84)"}
               flex={1}
-              py={"1%"}
+              py={"20px"}
+              px={"20px"}
             >
               <Text>Primero hay que conectarse</Text>
               <ConnectButton label={"Connect"} />
@@ -324,7 +325,7 @@ const Home: NextPage = () => {
                   w={"60%"}
                   isLoading={isLoadingDelete}
                   loadingText="Deleting"
-                  isDisabled={isErrorDelete || Number(hasSBT) == 0}
+                  isDisabled={isErrorDelete}
                   onClick={() => {
                     writeDelete && writeDelete();
                   }}

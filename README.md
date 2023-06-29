@@ -1,3 +1,84 @@
+**Como  utilizar la interfaz (aplicación web) para acceder a los contratos inteligentes**
+
+Pese a no ser estrictamente necesario recurrir a la aplicación de Next.js para utilizar las funciones de los contratos inteligentes, esta facilita mucho el uso para aquellos carentes del conocimiento técnico necesario. 
+
+Es importante mencionar que la aplicación de Next está diseñada para ser alojada en un servidor web, aunque en este proyecto (más concretamente en la demo) se utilizará en un servidor local. Otro punto importante a destacar es la independencia de los contratos inteligentes respecto a la interfaz web. Es posible relanzar la interfaz tantas veces como se quiera sin afectar a los contratos desplegados que ya se encuentran alojados dentro de la cadena de bloques.
+
+Las direcciones de los contratos se almacenan en el fichero *constants.ts*.
+Es crucial que se cuente con las *ABI (Application Binary Interface)* correspondientes a los contratos desplegados. Estas *ABI* se almacenan en el fichero *abi.ts* en forma de constante de *typescript*. 
+
+En caso de querer interactuar con los contratos sin utilizar la aplicación, es también necesario contar con las correspondientes *ABI* y las direcciones de los mismos.
+*Remix*, el IDE online para desarrollar en *solidity*, ofrece la posibilidad de "cargar" contratos desplegados para utilizar sus funciones facilmente sin requerir de una interfaz o aplicación. 
+
+En cuanto a la app, puede ser desplegada tanto en sistemas operativos Windows o Linux. Los pasos para su despliegue son los siguientes:
+
+**Linux**
+Se utiliza una máquina Ubuntu como referencia
+
+1. Clonar el repositorio ubicado en "https://github.com/luislazarraga/DeHealth" en tu PC. 
+2. Acceder al directorio DeHealth > frontend del repositorio recién clonado.
+3. Instalar *nodejs*. Es necesaria una versión superior a la "16.8.0". La forma más sencilla de hacerlo en Ubuntu es mediante el comando: 
+    
+    '''
+    sudo apt install -y nodejs 
+    '''
+
+4. Instalar *npm*. La forma más sencilla de hacerlo en Ubuntu es mediante el comando: 
+    
+    '''
+    sudo apt install npm
+    '''
+
+5. Instalar *yarn* mediante *npm*. La forma más sencilla de hacerlo en Ubuntu es mediante el comando: 
+    
+    '''
+    sudo npm install --global yarn
+    '''
+
+5. Instalar las dependencias del proyecto mediante *yarn*:  
+    
+    '''
+    yarn install
+    '''
+
+6. Lanzar la aplicación mediante *yarn*:
+    
+    '''
+    yarn dev
+    '''
+
+**Windows**
+Se utiliza una máquina Windows 10 como referencia.
+Adicionalmente, se cuenta con la consola "Git Bash" para poder ejecutar comandos de *Linux* en *Windows* 
+
+1. Clonar el repositorio ubicado en "https://github.com/luislazarraga/DeHealth" en tu PC. 
+2. Acceder al directorio DeHealth > frontend del repositorio recién clonado.
+3. Instalar *nodejs*. Es necesaria una versión superior a la "16.8.0". 
+4. Instalar *npm*. 
+5. Instalar *yarn* mediante *npm*. La forma más sencilla de hacerlo en Ubuntu es mediante el comando: 
+    
+    '''
+    npm install --global yarn
+    '''
+
+5. Instalar las dependencias del proyecto mediante *yarn*:  
+   
+    '''
+    yarn install
+    '''
+
+6. Lanzar la aplicación mediante *yarn*:
+    
+    '''
+    yarn dev
+    '''
+
+
+
+
+
+
+
 La lógica del backend de la aplicación está compuesto por dos contratos inteligentes "SBT" y "CajaFuerte":
 
 El contrato SBT implementa toda la lógica asociada a la llave de la caja fuerte (gestión de accesos y permisos) mientras que el otro contrato se centra en habilitar el almacenamiento y recuperación de los datos médicos médicos de los pacientes.
@@ -139,6 +220,7 @@ Como ya se ha descrito anteriormente, este modifier es el encargado de realizar 
 Solo cuenta con un require en su interior que llama a la función walletOfOwner para comprobar que el SBT que tiene el dueño en su dirección coincide con aquél al que se pretende aplicar un tratamiento. Incluye también la sintaxis “_;” utilizada para exigir que primero se procese la condición y posteriormente el código de las funciones en las que se aplica el modificador. 
 
 Esta función cuenta con un único parámetro uint256 _soulBoundToken que hace referencia al identificador del SBT del cual se hará la comprobación descrita en el párrafo anterior. Al ser un modifier, no devuelve nada en sí misma. En caso de no cumplirse la condición establecida se cancela la ejecución del código posterior y devuelve un mensaje del porqué. Esta función condicional es prescindible si se añade el require individualmente en las funciones trustYourFam y deleteFam, pero es indispensable limitarlas con dicha condición.
+
 
 
 
